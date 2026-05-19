@@ -1,0 +1,17 @@
+- id: sqlalchemy-annotate
+  name: sqlalchemy-annotate
+  description: Keep SQLAlchemy model files annotated with their schema.
+  entry: sqlalchemy-annotate generate
+  language: python
+  types: [python]
+  pass_filenames: false
+  require_serial: true
+
+- id: sqlalchemy-annotate-check
+  name: sqlalchemy-annotate (check only)
+  description: Fail if any SQLAlchemy annotation is stale (CI-friendly).
+  entry: sqlalchemy-annotate check
+  language: python
+  types: [python]
+  pass_filenames: false
+  require_serial: true

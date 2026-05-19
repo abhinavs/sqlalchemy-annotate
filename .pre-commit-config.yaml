@@ -1,0 +1,26 @@
+# Hooks for developing THIS repo. Consumers of the package use the hook ids
+# in .pre-commit-hooks.yaml instead.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-toml
+      - id: check-yaml
+
+  # Dogfood: keep the example app's annotations current.
+  - repo: local
+    hooks:
+      - id: sqlalchemy-annotate-example
+        name: sqlalchemy-annotate (example app)
+        entry: sqlalchemy-annotate check --models models --config /dev/null
+        language: system
+        pass_filenames: false
+        files: ^examples/fastapi_app/
