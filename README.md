@@ -2,11 +2,16 @@
 
 Rails `annotate_models` for modern SQLAlchemy 2.x + Alembic projects.
 
-It keeps a Schema Information comment block at the top of every model file, in
+It keeps a Schema Information comment block alongside every model class, in
 sync with your actual SQLAlchemy metadata, so reviewers and editors see the
-table shape without opening a database or a migration.
+table shape without opening a database or a migration. The block sits below
+the class by default; flip `position = "top"` to put it above instead.
 
 ```python
+class User(Base):
+    __tablename__ = "users"
+    ...
+
 # == Schema Information
 #
 # Table name: users
@@ -22,10 +27,6 @@ table shape without opening a database or a migration.
 #   profile_id -> profiles.id (ON DELETE CASCADE)
 #
 # == End Schema Information
-
-class User(Base):
-    __tablename__ = "users"
-    ...
 ```
 
 ## Why it is safe
@@ -74,6 +75,7 @@ include_foreign_keys = true
 include_relationships = false
 normalize_types = false               # true -> Rails-style (bigint, varchar(255))
 sort = "definition"                   # or "alphabetical"
+position = "bottom"                   # or "top" to place the block above the class
 exclude = ["audit_*", "*_history"]
 ```
 
@@ -102,7 +104,7 @@ sqlalchemy-annotate generate
 ```yaml
 repos:
   - repo: https://github.com/abhinavs/sqlalchemy-annotate
-    rev: v0.1.0
+    rev: v0.1.1
     hooks:
       - id: sqlalchemy-annotate
 ```

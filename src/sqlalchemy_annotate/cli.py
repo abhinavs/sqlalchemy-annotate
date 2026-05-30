@@ -31,10 +31,11 @@ _Dialect = typer.Option(None, "--dialect", help="Force a dialect (postgresql, my
 _ConfigPath = typer.Option(None, "--config", help="Path to a pyproject.toml.")
 _Exclude = typer.Option(None, "--exclude", help="Glob of table names to skip (repeatable).")
 _Sort = typer.Option(None, "--sort", help="definition | alphabetical")
+_Position = typer.Option(None, "--position", help="top | bottom (default bottom)")
 _DryRun = typer.Option(False, "--dry-run", help="Show what would change; write nothing.")
 
 
-def _build(models, engine, dialect, config_path, exclude, sort, **flags):
+def _build(models, engine, dialect, config_path, exclude, sort, position, **flags):
     """Discover models and build {file: {qualname: ModelSchema}}."""
     from sqlalchemy_annotate.config import load_config
     from sqlalchemy_annotate.discovery import discover_models
@@ -42,7 +43,8 @@ def _build(models, engine, dialect, config_path, exclude, sort, **flags):
 
     overrides = {
         "models": models, "engine": engine, "dialect": dialect,
-        "exclude": list(exclude) if exclude else None, "sort": sort, **flags,
+        "exclude": list(exclude) if exclude else None, "sort": sort,
+        "position": position, **flags,
     }
     cfg = load_config(
         config_path=Path(config_path) if config_path else None,
@@ -86,6 +88,7 @@ def generate(
     config: str | None = _ConfigPath,
     exclude: list[str] | None = _Exclude,
     sort: str | None = _Sort,
+    position: str | None = _Position,
     include_indexes: bool | None = typer.Option(None, "--include-indexes/--no-indexes"),
     include_foreign_keys: bool | None = typer.Option(
         None, "--include-foreign-keys/--no-foreign-keys"
@@ -102,7 +105,7 @@ def generate(
 
     try:
         cfg, by_file = _build(
-            models, engine, dialect, config, exclude, sort,
+            models, engine, dialect, config, exclude, sort, position,
             include_indexes=include_indexes,
             include_foreign_keys=include_foreign_keys,
             include_relationships=include_relationships,
@@ -141,13 +144,14 @@ def check(
     config: str | None = _ConfigPath,
     exclude: list[str] | None = _Exclude,
     sort: str | None = _Sort,
+    position: str | None = _Position,
 ) -> None:
     """Exit 0 if every annotation is current, 1 if any is stale (CI-friendly)."""
     from sqlalchemy_annotate.errors import AnnotateError
     from sqlalchemy_annotate.writer import annotate_source
 
     try:
-        cfg, by_file = _build(models, engine, dialect, config, exclude, sort)
+        cfg, by_file = _build(models, engine, dialect, config, exclude, sort, position)
     except AnnotateError as exc:
         err_console.print(f"[red]error[/]: {exc}")
         raise typer.Exit(2) from exc
@@ -184,7 +188,7 @@ def remove(
     from sqlalchemy_annotate.writer import remove_source
 
     try:
-        cfg, by_file = _build(models, engine, dialect, config, exclude, None)
+        cfg, by_file = _build(models, engine, dialect, config, exclude, None, None)
     except AnnotateError as exc:
         err_console.print(f"[red]error[/]: {exc}")
         raise typer.Exit(2) from exc

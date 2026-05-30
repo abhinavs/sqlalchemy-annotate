@@ -39,6 +39,25 @@ def test_defaults_when_no_file(tmp_path):
     assert cfg.normalize_types is False
 
 
+def test_position_default_is_bottom(tmp_path):
+    cfg = load_config(config_path=tmp_path / "missing.toml")
+    assert cfg.position == "bottom"
+
+
+def test_position_read_from_pyproject(tmp_path):
+    p = tmp_path / "pyproject.toml"
+    p.write_text('[tool.sqlalchemy-annotate]\nposition = "top"\n')
+    cfg = load_config(config_path=p)
+    assert cfg.position == "top"
+
+
+def test_invalid_position_rejected(tmp_path):
+    p = tmp_path / "pyproject.toml"
+    p.write_text('[tool.sqlalchemy-annotate]\nposition = "sideways"\n')
+    with pytest.raises(ConfigError):
+        load_config(config_path=p)
+
+
 def test_invalid_sort_rejected(tmp_path):
     p = tmp_path / "pyproject.toml"
     p.write_text("[tool.sqlalchemy-annotate]\nsort = \"sideways\"\n")

@@ -15,6 +15,7 @@ from sqlalchemy_annotate.errors import ConfigError
 
 _SECTION = ("tool", "sqlalchemy-annotate")
 _VALID_SORT = {"definition", "alphabetical"}
+_VALID_POSITION = {"top", "bottom"}
 
 
 @dataclass(slots=True)
@@ -27,12 +28,18 @@ class Config:
     include_relationships: bool = False
     normalize_types: bool = False
     sort: str = "definition"
+    position: str = "bottom"
     exclude: tuple[str, ...] = ()
 
     def validate(self) -> None:
         if self.sort not in _VALID_SORT:
             raise ConfigError(
                 f"sort must be one of {sorted(_VALID_SORT)}, got {self.sort!r}"
+            )
+        if self.position not in _VALID_POSITION:
+            raise ConfigError(
+                f"position must be one of {sorted(_VALID_POSITION)}, "
+                f"got {self.position!r}"
             )
 
 

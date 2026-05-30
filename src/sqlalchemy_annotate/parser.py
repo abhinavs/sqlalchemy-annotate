@@ -62,20 +62,32 @@ def find_block(lines: list[cst.EmptyLine]) -> tuple[int, int] | None:
     return None
 
 
-def strip_block(lines: list[cst.EmptyLine]) -> list[cst.EmptyLine]:
-    """Remove the block and the single trailing blank we own after it.
+def strip_block(
+    lines: list[cst.EmptyLine],
+    *,
+    leading_blank: bool = False,
+    trailing_blank: bool = True,
+) -> list[cst.EmptyLine]:
+    """Remove the block, optionally also a blank on each adjacent side.
 
-    Leading blank lines are deliberately preserved: they are the user's (or
-    Black's) separation from the preceding code. The block always sits
-    immediately above the class, so re-adding ``block + [blank]`` after this
-    reproduces the exact same leading_lines -- which is what makes ``generate``
-    idempotent and ``check`` trustworthy.
+    Top-position insertion appends a trailing blank as the separator from the
+    class (``[*user_leading, *block, blank]``); the default kwargs match that
+    so re-adding ``block + [blank]`` reproduces the same lines and keeps any
+    user blank lines above untouched.
+
+    Bottom-position insertion puts a leading blank (separator from the class
+    above) and re-uses any blank that already led the following statement, so
+    callers pass both ``leading_blank=True`` and ``trailing_blank=True``: the
+    block plus the blanks we own get stripped, leaving the user's other
+    content intact.
     """
     region = find_block(lines)
     if region is None:
         return lines
     start, end = region
-    hi = end
-    if hi + 1 < len(lines) and is_blank(lines[hi + 1]):
+    lo, hi = start, end
+    if leading_blank and lo > 0 and is_blank(lines[lo - 1]):
+        lo -= 1
+    if trailing_blank and hi + 1 < len(lines) and is_blank(lines[hi + 1]):
         hi += 1
-    return lines[:start] + lines[hi + 1 :]
+    return lines[:lo] + lines[hi + 1 :]
